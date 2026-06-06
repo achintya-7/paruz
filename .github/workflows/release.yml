@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build and release
@@ -36,6 +39,6 @@ jobs:
           files: |
             paruz-linux-x86_64.tar.gz
             paruz-linux-x86_64.tar.gz.sha256
-          generate_release_notes: false
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
