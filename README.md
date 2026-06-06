@@ -18,13 +18,6 @@ A terminal UI package manager frontend for Arch Linux, built with [OpenTUI](http
 
 ## Requirements
 
-### Runtime
-
-- **[Bun](https://bun.sh)** v1.0+ — install via:
-  ```bash
-  curl -fsSL https://bun.sh/install | bash
-  ```
-
 ### AUR Helper (at least one required)
 
 paruz needs an AUR helper to search and install packages. It auto-detects whichever is installed and prefers `paru` over `yay`.
