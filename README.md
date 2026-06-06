@@ -4,7 +4,7 @@
 
 A terminal UI package manager frontend for Arch Linux, built with [OpenTUI](https://github.com/nicholasgasior/opentui) + React and Bun.
 
-<img width="2873" height="1728" alt="image" src="https://github.com/user-attachments/assets/0fe4180f-7353-4c10-be6b-60ee2460d7b9" />
+<img alt="screenshot" src="https://github.com/user-attachments/assets/0fe4180f-7353-4c10-be6b-60ee2460d7b9" />
 
 ## Features
 
@@ -40,28 +40,10 @@ Only needed if you use the `Ctrl+U` mirror update feature.
 
 ## Installation
 
-### AUR
+### AUR (recommended)
 
 ```bash
 paru -S paruz-bin
-```
-
-### One-liner (recommended)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/achintya-7/paruz/main/install.sh | bash
-```
-
-This downloads the latest binary from GitHub releases, installs it to `~/.local/bin/paruz`, and verifies the checksum. After install, just run:
-
-```bash
-paruz
-```
-
-By default the binary is placed in `~/.local/bin`. To install elsewhere:
-
-```bash
-INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/achintya-7/paruz/main/install.sh | bash
 ```
 
 ### From source
@@ -72,13 +54,12 @@ Requires [Bun](https://bun.sh) v1.0+.
 git clone https://github.com/achintya-7/paruz.git
 cd paruz
 bun install
+
+# Run directly
 bun run src/index.tsx
-```
 
-### Build binary locally
-
-```bash
-bun run build   # produces ./paruz binary
+# Or compile a standalone binary
+bun run build
 ./paruz
 ```
 
@@ -140,12 +121,3 @@ On first run paruz builds a local cache from `pacman -Slq` (official repos) and 
 
 Full package details (version, description, dependencies, etc.) are fetched live from `paru -Si` when you select a package, with results cached in memory for the session.
 
-## Built With
-
-| Layer | Choice |
-|-------|--------|
-| Runtime | [Bun](https://bun.sh) |
-| UI | [OpenTUI](https://github.com/nicholasgasior/opentui) + `@opentui/react` |
-| Language | TypeScript + TSX |
-| Config | TOML via `smol-toml` |
-| Backend | `Bun.spawn` → `paru`/`yay`/`pacman` CLI |
