@@ -1,6 +1,6 @@
 # paruz
 
-A terminal UI package manager frontend for Arch Linux, built with [OpenTUI](https://github.com/nicholasgasior/opentui) + React and Bun.
+A terminal UI package manager frontend for Arch Linux, built with [OpenTUI](https://opentui.com) + React and Bun.
 
 <img width="2873" height="1728" alt="image" src="https://github.com/user-attachments/assets/0fe4180f-7353-4c10-be6b-60ee2460d7b9" />
 
