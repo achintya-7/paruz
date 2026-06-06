@@ -7,7 +7,7 @@ export interface MirrorResult {
 
 export const updateMirrors = async (
   renderer: CliRenderer,
-  mirrorHelper: "rate-mirrors" | "reflector" = "rate-mirrors"
+  mirrorHelper: "rate-mirrors" | "reflector" = "rate-mirrors",
 ): Promise<MirrorResult> => {
   renderer.suspend();
 
@@ -18,8 +18,12 @@ export const updateMirrors = async (
         : "reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist";
 
     const proc = Bun.spawn(
-      ["sh", "-c", `sudo ${cmd}; echo; echo '[Press any key to return to paruz...]'; read -n 1 -s -r`],
-      { stdin: "inherit", stdout: "inherit", stderr: "inherit" }
+      [
+        "sh",
+        "-c",
+        `sudo ${cmd}; echo; echo '[Press any key to return to paruz...]'; read -n 1 -s -r`,
+      ],
+      { stdin: "inherit", stdout: "inherit", stderr: "inherit" },
     );
     const code = await proc.exited;
 

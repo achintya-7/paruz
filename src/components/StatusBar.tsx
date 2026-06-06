@@ -20,7 +20,7 @@ export const StatusBar = ({
       paddingX={1}
     >
       <text fg={theme.accent}>{status}</text>
-      <text fg={theme.textDim}>  {hints}</text>
+      <text fg={theme.textDim}> {hints}</text>
     </box>
   );
 };

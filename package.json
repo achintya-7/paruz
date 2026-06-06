@@ -5,13 +5,17 @@
   "scripts": {
     "start": "bun run src/index.tsx",
     "dev": "bun run src/index.tsx",
-    "build": "bun build --compile --minify src/index.tsx --outfile paruz"
+    "build": "bun build --compile --minify src/index.tsx --outfile paruz",
+    "lint": "biome check src/",
+    "lint:fix": "biome check --write --unsafe src/",
+    "format": "biome format --write src/"
   },
   "dependencies": {
     "@opentui/react": "^0.3.2",
     "smol-toml": "^1.6.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
     "@types/bun": "^1.3.14",
     "@types/react": "^19.2.17",
     "typescript": "^6.0.3"

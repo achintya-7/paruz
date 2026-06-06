@@ -1,5 +1,5 @@
-import { join } from "path";
-import { homedir } from "os";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 const CACHE_DIR = join(homedir(), ".cache", "paruz");
 const CACHE_PATH = join(CACHE_DIR, "packages.txt");
@@ -24,7 +24,7 @@ export const buildCache = async (): Promise<string[]> => {
     try {
       const aurProc = Bun.spawn(
         ["sh", "-c", "curl -s 'https://aur.archlinux.org/packages.gz' | gunzip"],
-        { stdout: "pipe", stderr: "pipe" }
+        { stdout: "pipe", stderr: "pipe" },
       );
       const aurOut = await new Response(aurProc.stdout).text();
       await aurProc.exited;

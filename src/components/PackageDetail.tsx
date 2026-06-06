@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { useTheme } from "../themes/ThemeContext.js";
+import { useEffect, useRef, useState } from "react";
 import { getPackageInfo, type PackageInfo } from "../lib/info.js";
 import type { Package } from "../lib/search.js";
+import { useTheme } from "../themes/ThemeContext.js";
 
 interface PackageDetailProps {
   pkg: Package | null;
@@ -34,7 +34,7 @@ export const PackageDetail = ({ pkg, aurHelper }: PackageDetailProps) => {
 
     // Serve from cache immediately if available
     if (infoCache.has(pkg.name)) {
-      setInfo(infoCache.get(pkg.name)!);
+      setInfo(infoCache.get(pkg.name) ?? null);
       setLoading(false);
       return;
     }

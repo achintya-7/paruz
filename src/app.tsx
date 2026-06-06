@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
-import { ThemeContext } from "./themes/ThemeContext.js";
-import { themes, defaultTheme } from "./themes/index.js";
+import { useEffect, useState } from "react";
 import { useConfig } from "./hooks/useConfig.js";
 import { resolveTheme } from "./lib/config.js";
+import type { Theme } from "./themes/index.js";
+import { defaultTheme } from "./themes/index.js";
+import { ThemeContext } from "./themes/ThemeContext.js";
 import { SearchView } from "./views/SearchView.js";
 import { SettingsView } from "./views/SettingsView.js";
-import type { Theme } from "./themes/index.js";
 
 type View = "search" | "settings";
 
@@ -25,9 +25,17 @@ export const App = () => {
   }, [config?.theme]);
 
   useKeyboard((key) => {
-    if (key.name === "q" && view === "search") process.exit(0);
-    if (key.name === "," && view === "search") setView("settings");
-    if (key.name === "escape" && view === "settings") setView("search");
+    switch (key.name) {
+      case "q":
+        if (view === "search") process.exit(0);
+        break;
+      case ",":
+        if (view === "search") setView("settings");
+        break;
+      case "escape":
+        if (view === "settings") setView("search");
+        break;
+    }
   });
 
   if (loading || !config) {

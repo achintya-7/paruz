@@ -21,22 +21,22 @@ export interface PackageInfo {
 const parseInfoOutput = (stdout: string): Partial<PackageInfo> => {
   const info: Record<string, string> = {};
   const fieldMap: Record<string, keyof PackageInfo> = {
-    "Name": "name",
-    "Version": "version",
-    "Description": "description",
-    "URL": "url",
-    "Licenses": "licenses",
-    "Groups": "groups",
-    "Provides": "provides",
+    Name: "name",
+    Version: "version",
+    Description: "description",
+    URL: "url",
+    Licenses: "licenses",
+    Groups: "groups",
+    Provides: "provides",
     "Depends On": "depends",
     "Optional Deps": "optDepends",
     "Conflicts With": "conflicts",
-    "Replaces": "replaces",
+    Replaces: "replaces",
     "Installed Size": "installedSize",
-    "Packager": "packager",
+    Packager: "packager",
     "Build Date": "buildDate",
     "Install Date": "installDate",
-    "Repository": "repo",
+    Repository: "repo",
   };
 
   for (const line of stdout.split("\n")) {
@@ -49,14 +49,14 @@ const parseInfoOutput = (stdout: string): Partial<PackageInfo> => {
 
   const result: Partial<PackageInfo> = {};
   for (const [raw, mapped] of Object.entries(fieldMap)) {
-    if (info[raw]) (result as any)[mapped] = info[raw];
+    if (info[raw]) (result as Record<string, string | undefined>)[mapped] = info[raw];
   }
   return result;
 };
 
 export const getPackageInfo = async (
   name: string,
-  aurHelper: "paru" | "yay" = "paru"
+  aurHelper: "paru" | "yay" = "paru",
 ): Promise<Partial<PackageInfo>> => {
   try {
     const proc = Bun.spawn([aurHelper, "-Si", name], { stdout: "pipe", stderr: "pipe" });

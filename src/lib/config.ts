@@ -1,7 +1,7 @@
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { parse, stringify } from "smol-toml";
-import { join } from "path";
-import { homedir } from "os";
-import { themes, type Theme } from "../themes/index.js";
+import { type Theme, themes } from "../themes/index.js";
 
 export interface Config {
   aur_helper: "paru" | "yay";
@@ -43,7 +43,7 @@ export const loadConfig = async (): Promise<Config> => {
   if (!(await file.exists())) {
     const aur_helper = await detectAurHelper();
     const defaults = { ...DEFAULT_CONFIG, aur_helper };
-    await Bun.write(CONFIG_PATH, stringify(defaults as any));
+    await Bun.write(CONFIG_PATH, stringify(defaults as unknown as Record<string, unknown>));
     return defaults;
   }
 
@@ -54,7 +54,7 @@ export const loadConfig = async (): Promise<Config> => {
 
 export const saveConfig = async (config: Config): Promise<void> => {
   await ensureConfigDir();
-  await Bun.write(CONFIG_PATH, stringify(config as any));
+  await Bun.write(CONFIG_PATH, stringify(config as unknown as Record<string, unknown>));
 };
 
 export const loadCustomThemes = async (): Promise<Record<string, Theme>> => {

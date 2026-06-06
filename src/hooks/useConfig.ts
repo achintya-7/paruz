@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { loadConfig, saveConfig, type Config } from "../lib/config.js";
+import { useEffect, useState } from "react";
+import { type Config, loadConfig, saveConfig } from "../lib/config.js";
 
 export const useConfig = () => {
   const [config, setConfig] = useState<Config | null>(null);

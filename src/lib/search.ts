@@ -44,7 +44,7 @@ export const getInstalledPackages = async (): Promise<Set<string>> => {
 
 export const searchPackages = async (
   query: string,
-  aurHelper: "paru" | "yay" = "paru"
+  aurHelper: "paru" | "yay" = "paru",
 ): Promise<Package[]> => {
   if (!query.trim()) return [];
 

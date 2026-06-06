@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { buildCache, fuzzySearch, isCacheStale, loadCache } from "../lib/cache.js";
 import { getInstalledPackages, type Package } from "../lib/search.js";
-import { loadCache, buildCache, isCacheStale, fuzzySearch } from "../lib/cache.js";
 
 let cachedNames: string[] = [];
 let installedSet: Set<string> = new Set();

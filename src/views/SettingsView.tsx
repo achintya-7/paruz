@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { useKeyboard } from "@opentui/react";
-import { useTheme } from "../themes/ThemeContext.js";
-import { TitleBar } from "../components/TitleBar.js";
+import { useState } from "react";
 import { StatusBar } from "../components/StatusBar.js";
-import { themes } from "../themes/index.js";
+import { TitleBar } from "../components/TitleBar.js";
 import type { Config } from "../lib/config.js";
+import { themes } from "../themes/index.js";
+import { useTheme } from "../themes/ThemeContext.js";
 
 interface SettingsViewProps {
   config: Config;
@@ -47,28 +47,29 @@ export const SettingsView = ({ config, onSave, onClose }: SettingsViewProps) => 
   };
 
   useKeyboard(async (key) => {
-    if (key.name === "down" || key.name === "j") {
-      setCursor((c) => Math.min(c + 1, settings.length - 1));
-      return;
-    }
-    if (key.name === "up" || key.name === "k") {
-      setCursor((c) => Math.max(c - 1, 0));
-      return;
-    }
-    if (key.name === "right" || key.name === "l") {
-      cycleOption(settings[cursor], 1);
-      return;
-    }
-    if (key.name === "left" || key.name === "h") {
-      cycleOption(settings[cursor], -1);
-      return;
-    }
-    if (key.name === "return") {
-      await onSave(draft);
-      return;
-    }
-    if (key.name === "escape" || key.name === "q") {
-      onClose();
+    switch (key.name) {
+      case "down":
+      case "j":
+        setCursor((c) => Math.min(c + 1, settings.length - 1));
+        return;
+      case "up":
+      case "k":
+        setCursor((c) => Math.max(c - 1, 0));
+        return;
+      case "right":
+      case "l":
+        cycleOption(settings[cursor], 1);
+        return;
+      case "left":
+      case "h":
+        cycleOption(settings[cursor], -1);
+        return;
+      case "return":
+        await onSave(draft);
+        return;
+      case "escape":
+      case "q":
+        onClose();
     }
   });
 
@@ -116,9 +117,7 @@ export const SettingsView = ({ config, onSave, onClose }: SettingsViewProps) => 
         })}
 
         <box width="100%" height={2} />
-        <text fg={theme.textDim}>
-          [↑↓] Navigate  [←→] Change  [Enter] Save  [Esc] Cancel
-        </text>
+        <text fg={theme.textDim}>[↑↓] Navigate [←→] Change [Enter] Save [Esc] Cancel</text>
       </box>
 
       <StatusBar status="Settings" hints="[Enter] Save  [Esc] Cancel" />
