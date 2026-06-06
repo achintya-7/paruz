@@ -1,0 +1,4 @@
+node_modules/
+paruz
+*.tar.gz
+*.sha256
