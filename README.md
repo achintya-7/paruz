@@ -1,12 +1,10 @@
 # paruz
 
-<<<<<<< HEAD
 A terminal UI package manager frontend for Arch Linux, built with [OpenTUI](https://opentui.com) + React and Bun.
-=======
+
 [![AUR](https://img.shields.io/aur/version/paruz-bin?label=paruz-bin&logo=archlinux)](https://aur.archlinux.org/packages/paruz-bin)
 
 A terminal UI package manager frontend for Arch Linux, built with [OpenTUI](https://github.com/nicholasgasior/opentui) + React and Bun.
->>>>>>> 2c8acbb (docs: add AUR badge and install instructions)
 
 <img width="2873" height="1728" alt="image" src="https://github.com/user-attachments/assets/0fe4180f-7353-4c10-be6b-60ee2460d7b9" />
 
