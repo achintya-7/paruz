@@ -36,6 +36,6 @@ jobs:
           files: |
             paruz-linux-x86_64.tar.gz
             paruz-linux-x86_64.tar.gz.sha256
-          generate_release_notes: true
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
