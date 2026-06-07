@@ -2,7 +2,8 @@
 set -euo pipefail
 
 REPO="achintya-7/paruz"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
+INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/lib/paruz}"
+BIN_DIR="${BIN_DIR:-$HOME/.local/bin}"
 BINARY="paruz"
 
 # Colors
@@ -16,11 +17,21 @@ warn()    { echo -e "${YELLOW}==> WARNING:${NC} $*"; }
 error()   { echo -e "${RED}==> ERROR:${NC} $*" >&2; exit 1; }
 
 # Check OS
-[[ "$(uname -s)" == "Linux" ]] || error "paruz only supports Linux (Arch Linux)"
+[[ "$(uname -s)" == "Linux" ]] || error "paruz only supports Linux"
 
 # Check arch
 ARCH="$(uname -m)"
 [[ "$ARCH" == "x86_64" ]] || error "paruz only supports x86_64. Got: $ARCH"
+
+# Check for bun
+if ! command -v bun &>/dev/null; then
+  info "Bun not found. Installing bun..."
+  curl -fsSL https://bun.sh/install | bash
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH="$BUN_INSTALL/bin:$PATH"
+  command -v bun &>/dev/null || error "Failed to install bun. Install manually: https://bun.sh"
+  info "Bun installed successfully."
+fi
 
 # Check for AUR helper
 if ! command -v paru &>/dev/null && ! command -v yay &>/dev/null; then
@@ -48,29 +59,26 @@ trap 'rm -rf "$TMP"' EXIT
 info "Downloading $ARCHIVE..."
 curl -fsSL "$URL" -o "$TMP/$ARCHIVE"
 
-# Verify checksum if available
-SHA_URL="${URL}.sha256"
-if curl -fsSL "$SHA_URL" -o "$TMP/${ARCHIVE}.sha256" 2>/dev/null; then
-  info "Verifying checksum..."
-  (cd "$TMP" && sha256sum -c "${ARCHIVE}.sha256") || error "Checksum verification failed"
-fi
-
 # Extract
 info "Extracting..."
 tar -xzf "$TMP/$ARCHIVE" -C "$TMP"
 
 # Install
+rm -rf "$INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
-install -m 755 "$TMP/$BINARY" "$INSTALL_DIR/$BINARY"
+cp -a "$TMP/dist/"* "$INSTALL_DIR/"
+
+mkdir -p "$BIN_DIR"
+ln -sf "$INSTALL_DIR/$BINARY" "$BIN_DIR/$BINARY"
 
 # Check PATH
-if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
-  warn "$INSTALL_DIR is not in your PATH."
+if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
+  warn "$BIN_DIR is not in your PATH."
   warn "Add the following to your shell config (~/.bashrc, ~/.zshrc, or ~/.config/fish/config.fish):"
   echo
   echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
   echo
 fi
 
-info "paruz ${LATEST} installed to ${INSTALL_DIR}/${BINARY}"
+info "paruz ${LATEST} installed to ${INSTALL_DIR}"
 info "Run: paruz"
