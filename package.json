@@ -5,7 +5,7 @@
   "scripts": {
     "start": "bun run src/index.tsx",
     "dev": "bun run src/index.tsx",
-    "build": "bun build --compile --minify src/index.tsx --outfile paruz",
+    "build": "rm -rf dist && bun build --minify --target=bun src/index.tsx --outdir=dist && printf '%s\\n%s' '#!/usr/bin/env bun' \"$(cat dist/index.js)\" > dist/paruz && chmod +x dist/paruz && rm dist/index.js",
     "lint": "biome check src/",
     "lint:fix": "biome check --write --unsafe src/",
     "format": "biome format --write src/"
