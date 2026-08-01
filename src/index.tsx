@@ -7,4 +7,5 @@ const renderer = await createCliRenderer({
   clearOnShutdown: true,
 });
 
-createRoot(renderer).render(<App />);
+const root = createRoot(renderer);
+root.render(<App onQuit={() => root.unmount()} />);
