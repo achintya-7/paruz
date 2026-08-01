@@ -10,7 +10,11 @@ import { SettingsView } from "./views/SettingsView.js";
 
 type View = "search" | "settings";
 
-export const App = () => {
+interface AppProps {
+  onQuit: () => void;
+}
+
+export const App = ({ onQuit }: AppProps) => {
   const { config, loading, updateConfig } = useConfig();
   const [view, setView] = useState<View>("search");
   const [theme, setTheme] = useState<Theme>(defaultTheme);
@@ -27,7 +31,7 @@ export const App = () => {
   useKeyboard((key) => {
     switch (key.name) {
       case "q":
-        if (view === "search") process.exit(0);
+        if (view === "search") onQuit();
         break;
       case ",":
         if (view === "search") setView("settings");
