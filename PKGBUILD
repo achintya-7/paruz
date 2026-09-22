@@ -3,8 +3,8 @@
 # See https://github.com/achintya-7/paruz
 
 pkgname=paruz-bin
-pkgver=0.1.0
-pkgrel=2
+pkgver=0.2.0
+pkgrel=1
 pkgdesc="A TUI frontend for paru/yay package management"
 arch=('x86_64')
 url="https://github.com/achintya-7/paruz"
