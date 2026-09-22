@@ -11,7 +11,7 @@ url="https://github.com/achintya-7/paruz"
 license=('MIT')
 options=('!strip')
 source=("$url/releases/download/v$pkgver/paruz-linux-x86_64.tar.gz")
-sha256sums=('7749b89f3f29e639efb836b14feca330b93473d6b8eda8a3b9f1366fd568bdaf')
+sha256sums=('1d894a01f5fb40c846442fa738cad5bb424ddd61d14cd2fbf29fe82813d8791f')
 provides=('paruz')
 conflicts=('paruz')
 
