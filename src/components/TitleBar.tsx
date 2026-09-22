@@ -1,10 +1,12 @@
+import { type BackendId, backendLabel, detectBackend } from "../lib/backend.js";
 import { useTheme } from "../themes/ThemeContext.js";
 
 interface TitleBarProps {
   title?: string;
+  backend?: BackendId;
 }
 
-export const TitleBar = ({ title = "paruz" }: TitleBarProps) => {
+export const TitleBar = ({ title = "paruz", backend = detectBackend() }: TitleBarProps) => {
   const theme = useTheme();
   return (
     <box
@@ -19,7 +21,7 @@ export const TitleBar = ({ title = "paruz" }: TitleBarProps) => {
       paddingX={1}
     >
       <text fg={theme.accent}>{title}</text>
-      <text fg={theme.textDim}> — Arch Linux package manager</text>
+      <text fg={theme.textDim}> — {backendLabel(backend)}</text>
     </box>
   );
 };

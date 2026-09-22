@@ -1,3 +1,5 @@
+import { type BackendId, detectBackend } from "./backend.js";
+
 export interface PackageInfo {
   name: string;
   version: string;
@@ -54,15 +56,60 @@ const parseInfoOutput = (stdout: string): Partial<PackageInfo> => {
   return result;
 };
 
+interface BrewFormula {
+  name?: string;
+  full_name?: string;
+  desc?: string;
+  homepage?: string;
+  license?: string;
+  tap?: string;
+  versions?: { stable?: string };
+  version?: string;
+  dependencies?: string[];
+  depends_on?: Record<string, unknown>;
+  conflicts_with?: string[];
+  installed?: { version?: string }[];
+}
+
+const parseBrewInfo = (stdout: string, name: string): Partial<PackageInfo> => {
+  const parsed = JSON.parse(stdout) as { formulae?: BrewFormula[]; casks?: BrewFormula[] };
+  const formula = parsed.formulae?.[0];
+  const cask = parsed.casks?.[0];
+  const entry = formula ?? cask;
+  if (!entry) return { name };
+
+  const version = formula ? (entry.versions?.stable ?? "") : (entry.version ?? "");
+  // Casks express dependencies as an object keyed by type; formulae as a plain list.
+  const depends = formula
+    ? (entry.dependencies ?? []).join("  ")
+    : Object.values(entry.depends_on ?? {})
+        .flatMap((v) => (Array.isArray(v) ? v : []))
+        .filter((v): v is string => typeof v === "string")
+        .join("  ");
+
+  return {
+    name: entry.full_name ?? entry.name ?? name,
+    version,
+    description: entry.desc ?? "",
+    repo: cask ? `${entry.tap ?? "homebrew/cask"} (cask)` : (entry.tap ?? "homebrew/core"),
+    url: entry.homepage ?? "",
+    licenses: entry.license ?? "",
+    depends,
+    conflicts: (entry.conflicts_with ?? []).join("  "),
+  };
+};
+
 export const getPackageInfo = async (
   name: string,
   aurHelper: "paru" | "yay" = "paru",
+  backend: BackendId = detectBackend(),
 ): Promise<Partial<PackageInfo>> => {
   try {
-    const proc = Bun.spawn([aurHelper, "-Si", name], { stdout: "pipe", stderr: "pipe" });
+    const cmd = backend === "brew" ? ["brew", "info", "--json=v2", name] : [aurHelper, "-Si", name];
+    const proc = Bun.spawn(cmd, { stdout: "pipe", stderr: "pipe" });
     const stdout = await new Response(proc.stdout).text();
     await proc.exited;
-    return parseInfoOutput(stdout);
+    return backend === "brew" ? parseBrewInfo(stdout, name) : parseInfoOutput(stdout);
   } catch {
     return { name };
   }

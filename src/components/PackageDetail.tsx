@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { type BackendId, detectBackend } from "../lib/backend.js";
 import { getPackageInfo, type PackageInfo } from "../lib/info.js";
 import type { Package } from "../lib/search.js";
 import { useTheme } from "../themes/ThemeContext.js";
@@ -6,6 +7,7 @@ import { useTheme } from "../themes/ThemeContext.js";
 interface PackageDetailProps {
   pkg: Package | null;
   aurHelper: "paru" | "yay";
+  backend?: BackendId;
 }
 
 const infoCache = new Map<string, Partial<PackageInfo>>();
@@ -20,7 +22,11 @@ const Row = ({ label, value }: { label: string; value: string }) => {
   );
 };
 
-export const PackageDetail = ({ pkg, aurHelper }: PackageDetailProps) => {
+export const PackageDetail = ({
+  pkg,
+  aurHelper,
+  backend = detectBackend(),
+}: PackageDetailProps) => {
   const theme = useTheme();
   const [info, setInfo] = useState<Partial<PackageInfo> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -45,7 +51,7 @@ export const PackageDetail = ({ pkg, aurHelper }: PackageDetailProps) => {
 
     debounceRef.current = setTimeout(async () => {
       try {
-        const result = await getPackageInfo(pkg.name, aurHelper);
+        const result = await getPackageInfo(pkg.name, aurHelper, backend);
         infoCache.set(pkg.name, result);
         setInfo(result);
       } finally {
@@ -56,7 +62,7 @@ export const PackageDetail = ({ pkg, aurHelper }: PackageDetailProps) => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [pkg?.name, aurHelper]);
+  }, [pkg?.name, aurHelper, backend]);
 
   return (
     <scrollbox flexGrow={1} width="100%" height="100%">

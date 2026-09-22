@@ -6,6 +6,7 @@ import { SearchBar } from "../components/SearchBar.js";
 import { StatusBar } from "../components/StatusBar.js";
 import { TitleBar } from "../components/TitleBar.js";
 import { refreshCache, usePackageSearch } from "../hooks/usePackageSearch.js";
+import { maintenanceLabel } from "../lib/backend.js";
 import type { Config } from "../lib/config.js";
 import { installPackage } from "../lib/install.js";
 import { updateMirrors } from "../lib/mirrors.js";
@@ -47,7 +48,12 @@ export const SearchView = ({ config, onOpenSettings }: SearchViewProps) => {
         if (!selectedPkg || !renderer) return;
         (async () => {
           setStatus(`Installing ${selectedPkg.name}...`);
-          const result = await installPackage(selectedPkg.name, renderer, config.aur_helper);
+          const result = await installPackage(
+            selectedPkg.name,
+            renderer,
+            config.aur_helper,
+            config.backend,
+          );
           setStatus(result.message);
           setTimeout(() => setStatus(null), 3000);
         })();
@@ -64,8 +70,8 @@ export const SearchView = ({ config, onOpenSettings }: SearchViewProps) => {
       case "u":
         if (!key.ctrl || !renderer) return;
         (async () => {
-          setStatus("Updating mirrors...");
-          const result = await updateMirrors(renderer, config.mirror_helper);
+          setStatus(config.backend === "brew" ? "Updating packages..." : "Updating mirrors...");
+          const result = await updateMirrors(renderer, config.mirror_helper, config.backend);
           setStatus(result.message);
           setTimeout(() => setStatus(null), 3000);
         })();
@@ -81,7 +87,7 @@ export const SearchView = ({ config, onOpenSettings }: SearchViewProps) => {
 
   return (
     <box width="100%" height="100%" flexDirection="column">
-      <TitleBar title={`paruz (${packages.length} results)`} />
+      <TitleBar title={`paruz (${packages.length} results)`} backend={config.backend} />
       <SearchBar
         value={query}
         loading={loading}
@@ -113,13 +119,13 @@ export const SearchView = ({ config, onOpenSettings }: SearchViewProps) => {
           title=" Details "
           backgroundColor={theme.titleBg}
         >
-          <PackageDetail pkg={selectedPkg} aurHelper={config.aur_helper} />
+          <PackageDetail pkg={selectedPkg} aurHelper={config.aur_helper} backend={config.backend} />
         </box>
       </box>
 
       <StatusBar
         status={statusText}
-        hints="[↑↓] Navigate  [Enter] Install  [Ctrl+U] Mirrors  [Ctrl+R] Refresh Cache  [,] Settings  [q] Quit"
+        hints={`[↑↓] Navigate  [Enter] Install  [Ctrl+U] ${maintenanceLabel(config.backend)}  [Ctrl+R] Refresh Cache  [,] Settings  [q] Quit`}
       />
     </box>
   );
