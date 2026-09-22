@@ -15,18 +15,36 @@ info()    { echo -e "${GREEN}==>${NC} $*"; }
 warn()    { echo -e "${YELLOW}==> WARNING:${NC} $*"; }
 error()   { echo -e "${RED}==> ERROR:${NC} $*" >&2; exit 1; }
 
-# Check OS
-[[ "$(uname -s)" == "Linux" ]] || error "paruz only supports Linux (Arch Linux)"
-
-# Check arch
+# Detect platform
+OS="$(uname -s)"
 ARCH="$(uname -m)"
-[[ "$ARCH" == "x86_64" ]] || error "paruz only supports x86_64. Got: $ARCH"
 
-# Check for AUR helper
-if ! command -v paru &>/dev/null && ! command -v yay &>/dev/null; then
-  warn "Neither paru nor yay found. paruz requires an AUR helper to search and install packages."
-  warn "Install paru: https://github.com/morganamilo/paru"
-fi
+case "$OS" in
+  Linux)
+    [[ "$ARCH" == "x86_64" ]] || error "On Linux, paruz supports x86_64 only. Got: $ARCH"
+    TARGET="linux-x86_64"
+    # Check for AUR helper
+    if ! command -v paru &>/dev/null && ! command -v yay &>/dev/null; then
+      warn "Neither paru nor yay found. paruz requires an AUR helper to search and install packages."
+      warn "Install paru: https://github.com/morganamilo/paru"
+    fi
+    ;;
+  Darwin)
+    case "$ARCH" in
+      arm64)  TARGET="darwin-arm64" ;;
+      x86_64) TARGET="darwin-x86_64" ;;
+      *)      error "On macOS, paruz supports arm64 and x86_64 only. Got: $ARCH" ;;
+    esac
+    # Check for Homebrew
+    if ! command -v brew &>/dev/null; then
+      warn "Homebrew not found. paruz uses brew to search and install packages on macOS."
+      warn "Install Homebrew: https://brew.sh"
+    fi
+    ;;
+  *)
+    error "paruz supports Linux and macOS only. Got: $OS"
+    ;;
+esac
 
 # Fetch latest release tag
 info "Fetching latest release..."
@@ -39,7 +57,7 @@ LATEST=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
 info "Latest version: $LATEST"
 
 # Download
-ARCHIVE="paruz-linux-x86_64.tar.gz"
+ARCHIVE="paruz-${TARGET}.tar.gz"
 URL="https://github.com/${REPO}/releases/download/${LATEST}/${ARCHIVE}"
 
 TMP=$(mktemp -d)
@@ -52,7 +70,12 @@ curl -fsSL "$URL" -o "$TMP/$ARCHIVE"
 SHA_URL="${URL}.sha256"
 if curl -fsSL "$SHA_URL" -o "$TMP/${ARCHIVE}.sha256" 2>/dev/null; then
   info "Verifying checksum..."
-  (cd "$TMP" && sha256sum -c "${ARCHIVE}.sha256") || error "Checksum verification failed"
+  if command -v sha256sum &>/dev/null; then
+    (cd "$TMP" && sha256sum -c "${ARCHIVE}.sha256") || error "Checksum verification failed"
+  else
+    # macOS ships shasum instead of sha256sum
+    (cd "$TMP" && shasum -a 256 -c "${ARCHIVE}.sha256") || error "Checksum verification failed"
+  fi
 fi
 
 # Extract

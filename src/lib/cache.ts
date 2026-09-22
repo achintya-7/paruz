@@ -1,5 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { type BackendId, detectBackend } from "./backend.js";
 
 const CACHE_DIR = join(homedir(), ".cache", "paruz");
 const CACHE_PATH = join(CACHE_DIR, "packages.txt");
@@ -10,30 +11,46 @@ const ensureCacheDir = async () => {
   } catch {}
 };
 
-export const buildCache = async (): Promise<string[]> => {
+const runLines = async (cmd: string[]): Promise<string[]> => {
+  try {
+    const proc = Bun.spawn(cmd, { stdout: "pipe", stderr: "pipe" });
+    const out = await new Response(proc.stdout).text();
+    await proc.exited;
+    return out.split("\n").filter(Boolean);
+  } catch {
+    return [];
+  }
+};
+
+const buildBrewCache = async (): Promise<string[]> => {
+  // `brew formulae` / `brew casks` print every known name, one per line — no network
+  // round-trip beyond the local tap checkouts.
+  const [formulae, casks] = await Promise.all([
+    runLines(["brew", "formulae"]),
+    runLines(["brew", "casks"]),
+  ]);
+  return [...new Set([...formulae, ...casks])];
+};
+
+const buildArchCache = async (): Promise<string[]> => {
+  // Official repo packages
+  const repoLines = await runLines(["pacman", "-Slq"]);
+
+  // AUR package list
+  const aurLines = await runLines([
+    "sh",
+    "-c",
+    "curl -s 'https://aur.archlinux.org/packages.gz' | gunzip",
+  ]);
+
+  return [...new Set([...repoLines, ...aurLines])];
+};
+
+export const buildCache = async (backend: BackendId = detectBackend()): Promise<string[]> => {
   await ensureCacheDir();
 
   try {
-    // Get official repo packages
-    const repoProc = Bun.spawn(["pacman", "-Slq"], { stdout: "pipe", stderr: "pipe" });
-    const repoOut = await new Response(repoProc.stdout).text();
-    await repoProc.exited;
-
-    // Get AUR packages list
-    let aurLines: string[] = [];
-    try {
-      const aurProc = Bun.spawn(
-        ["sh", "-c", "curl -s 'https://aur.archlinux.org/packages.gz' | gunzip"],
-        { stdout: "pipe", stderr: "pipe" },
-      );
-      const aurOut = await new Response(aurProc.stdout).text();
-      await aurProc.exited;
-      aurLines = aurOut.split("\n").filter(Boolean);
-    } catch {}
-
-    const repoLines = repoOut.split("\n").filter(Boolean);
-    const all = [...new Set([...repoLines, ...aurLines])];
-
+    const all = backend === "brew" ? await buildBrewCache() : await buildArchCache();
     await Bun.write(CACHE_PATH, all.join("\n"));
     return all;
   } catch {

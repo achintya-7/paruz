@@ -2,6 +2,7 @@ import { useKeyboard } from "@opentui/react";
 import { useState } from "react";
 import { StatusBar } from "../components/StatusBar.js";
 import { TitleBar } from "../components/TitleBar.js";
+import type { BackendId } from "../lib/backend.js";
 import type { Config } from "../lib/config.js";
 import { themes } from "../themes/index.js";
 import { useTheme } from "../themes/ThemeContext.js";
@@ -17,8 +18,12 @@ const THEME_NAMES = Object.keys(themes);
 const aurHelpers = ["paru", "yay"] as const;
 const mirrorHelpers = ["rate-mirrors", "reflector"] as const;
 
-const settings = ["aur_helper", "mirror_helper", "theme"] as const;
-type SettingKey = (typeof settings)[number];
+const ALL_SETTINGS = ["aur_helper", "mirror_helper", "theme"] as const;
+type SettingKey = (typeof ALL_SETTINGS)[number];
+
+// The AUR and mirror helpers are Arch-only concepts — on Homebrew only the theme applies.
+const settingsFor = (backend: BackendId): readonly SettingKey[] =>
+  backend === "brew" ? (["theme"] as const) : ALL_SETTINGS;
 
 const LABELS: Record<SettingKey, string> = {
   aur_helper: "AUR Helper",
@@ -34,6 +39,7 @@ const OPTIONS: Record<SettingKey, readonly string[]> = {
 
 export const SettingsView = ({ config, onSave, onClose }: SettingsViewProps) => {
   const theme = useTheme();
+  const settings = settingsFor(config.backend);
   const [cursor, setCursor] = useState(0);
   const [draft, setDraft] = useState<Partial<Config>>({});
 
@@ -75,7 +81,7 @@ export const SettingsView = ({ config, onSave, onClose }: SettingsViewProps) => 
 
   return (
     <box width="100%" height="100%" flexDirection="column">
-      <TitleBar title="paruz — Settings" />
+      <TitleBar title="paruz — Settings" backend={config.backend} />
 
       <box
         flexGrow={1}

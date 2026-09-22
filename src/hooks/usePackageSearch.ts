@@ -6,19 +6,35 @@ let cachedNames: string[] = [];
 let installedSet: Set<string> = new Set();
 let cacheReady = false;
 
+// Module-level state is shared by every consumer of this hook, so mutations have to be
+// broadcast explicitly — otherwise a fresh install doesn't show up until the query changes.
+const listeners = new Set<() => void>();
+const notify = () => {
+  for (const listener of listeners) listener();
+};
+
 const initCache = async () => {
   if (cacheReady) return;
   installedSet = await getInstalledPackages();
   const stale = await isCacheStale();
   cachedNames = stale ? await buildCache() : await loadCache();
   cacheReady = true;
+  notify();
 };
 
 export const refreshCache = async () => {
   cacheReady = false;
+  notify();
   installedSet = await getInstalledPackages();
   cachedNames = await buildCache();
   cacheReady = true;
+  notify();
+};
+
+/** Re-read the installed package set — call after an install or remove so [i] is accurate. */
+export const refreshInstalled = async () => {
+  installedSet = await getInstalledPackages();
+  notify();
 };
 
 initCache();
@@ -35,32 +51,26 @@ const toPackages = (names: string[]): Package[] =>
 export const usePackageSearch = (query: string) => {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(!cacheReady);
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
-    if (!cacheReady) {
-      setLoading(true);
-      return;
-    }
-    setLoading(false);
+    const listener = () => setRevision((r) => r + 1);
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  }, []);
+
+  useEffect(() => {
+    setLoading(!cacheReady);
+    if (!cacheReady) return;
     if (!query.trim()) {
       setPackages([]);
       return;
     }
     const names = fuzzySearch(query, cachedNames);
     setPackages(toPackages(names));
-  }, [query]);
-
-  // Poll until cache is ready on first load
-  useEffect(() => {
-    if (cacheReady) return;
-    const interval = setInterval(() => {
-      if (cacheReady) {
-        setLoading(false);
-        clearInterval(interval);
-      }
-    }, 200);
-    return () => clearInterval(interval);
-  }, []);
+  }, [query, revision]);
 
   return { packages, loading };
 };

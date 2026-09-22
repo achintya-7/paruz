@@ -2,14 +2,17 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { parse, stringify } from "smol-toml";
 import { type Theme, themes } from "../themes/index.js";
+import { type BackendId, detectBackend } from "./backend.js";
 
 export interface Config {
+  backend: BackendId;
   aur_helper: "paru" | "yay";
   mirror_helper: "rate-mirrors" | "reflector";
   theme: string;
 }
 
 const DEFAULT_CONFIG: Config = {
+  backend: "arch",
   aur_helper: "paru",
   mirror_helper: "rate-mirrors",
   theme: "ayu-dark",
@@ -39,17 +42,21 @@ const detectAurHelper = async (): Promise<"paru" | "yay"> => {
 export const loadConfig = async (): Promise<Config> => {
   await ensureConfigDir();
 
+  const backend = detectBackend();
   const file = Bun.file(CONFIG_PATH);
   if (!(await file.exists())) {
-    const aur_helper = await detectAurHelper();
-    const defaults = { ...DEFAULT_CONFIG, aur_helper };
+    // The AUR helper is meaningless on brew — skip the probe there.
+    const aur_helper = backend === "arch" ? await detectAurHelper() : DEFAULT_CONFIG.aur_helper;
+    const defaults = { ...DEFAULT_CONFIG, backend, aur_helper };
     await Bun.write(CONFIG_PATH, stringify(defaults as unknown as Record<string, unknown>));
     return defaults;
   }
 
   const raw = await file.text();
   const parsed = parse(raw) as Partial<Config>;
-  return { ...DEFAULT_CONFIG, ...parsed };
+  // Detection wins over whatever is on disk: the backend is a property of the machine,
+  // not a preference, so an old (pre-backend) or copied config can't break macOS.
+  return { ...DEFAULT_CONFIG, ...parsed, backend };
 };
 
 export const saveConfig = async (config: Config): Promise<void> => {

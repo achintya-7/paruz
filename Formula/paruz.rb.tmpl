@@ -1,0 +1,34 @@
+# Template — the release workflow fills in @VERSION@ and the checksums and attaches the
+# rendered formula to the GitHub release as paruz.rb.
+class Paruz < Formula
+  desc "Terminal UI package manager frontend (Homebrew on macOS, paru/yay on Arch)"
+  homepage "https://github.com/achintya-7/paruz"
+  version "@VERSION@"
+  license "MIT"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/achintya-7/paruz/releases/download/v@VERSION@/paruz-darwin-arm64.tar.gz"
+      sha256 "@SHA_DARWIN_ARM64@"
+    end
+    on_intel do
+      url "https://github.com/achintya-7/paruz/releases/download/v@VERSION@/paruz-darwin-x86_64.tar.gz"
+      sha256 "@SHA_DARWIN_X86_64@"
+    end
+  end
+
+  on_linux do
+    on_intel do
+      url "https://github.com/achintya-7/paruz/releases/download/v@VERSION@/paruz-linux-x86_64.tar.gz"
+      sha256 "@SHA_LINUX_X86_64@"
+    end
+  end
+
+  def install
+    bin.install "paruz"
+  end
+
+  test do
+    assert_match "paruz", shell_output("#{bin}/paruz --help", 0)
+  end
+end

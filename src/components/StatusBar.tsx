@@ -7,7 +7,7 @@ interface StatusBarProps {
 
 export const StatusBar = ({
   status = "Ready",
-  hints = "[↑↓] Navigate  [Enter] Install  [Esc] Clear  [q] Quit",
+  hints = "[↑↓] Navigate  [Enter] Install  [Esc] Clear  [Ctrl+C] Quit",
 }: StatusBarProps) => {
   const theme = useTheme();
   return (
