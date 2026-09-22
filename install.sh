@@ -30,11 +30,8 @@ case "$OS" in
     fi
     ;;
   Darwin)
-    case "$ARCH" in
-      arm64)  TARGET="darwin-arm64" ;;
-      x86_64) TARGET="darwin-x86_64" ;;
-      *)      error "On macOS, paruz supports arm64 and x86_64 only. Got: $ARCH" ;;
-    esac
+    [[ "$ARCH" == "arm64" ]] || error "On macOS, paruz supports Apple Silicon (arm64) only. Got: $ARCH"
+    TARGET="darwin-arm64"
     # Check for Homebrew
     if ! command -v brew &>/dev/null; then
       warn "Homebrew not found. paruz uses brew to search and install packages on macOS."

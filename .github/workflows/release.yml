@@ -2,15 +2,56 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  version:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      release: ${{ steps.resolve.outputs.release }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version and decide whether to release
+        id: resolve
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            # Explicit tag push — always release that tag.
+            VERSION="${GITHUB_REF_NAME#v}"
+            RELEASE=true
+          else
+            # Merge to main — release only when package.json carries a version
+            # that has not been tagged yet, so ordinary merges are no-ops.
+            VERSION=$(jq -r .version package.json)
+            if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+              RELEASE=false
+            else
+              RELEASE=true
+            fi
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "release=${RELEASE}" >> "$GITHUB_OUTPUT"
+          if [[ "$RELEASE" == "true" ]]; then
+            echo "Releasing v${VERSION}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "v${VERSION} is already tagged — nothing to release. Bump the version in package.json to cut a release." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   build:
     name: Build ${{ matrix.target }}
+    needs: version
+    if: needs.version.outputs.release == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -20,8 +61,6 @@ jobs:
           # on its own native runner rather than cross-compiled.
           - os: ubuntu-latest
             target: linux-x86_64
-          - os: macos-13
-            target: darwin-x86_64
           - os: macos-14
             target: darwin-arm64
 
@@ -59,7 +98,7 @@ jobs:
 
   release:
     name: Publish release
-    needs: build
+    needs: [version, build]
     runs-on: ubuntu-latest
 
     steps:
@@ -74,13 +113,11 @@ jobs:
 
       - name: Generate Homebrew formula
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${{ needs.version.outputs.version }}"
           SHA_ARM=$(cut -d' ' -f1 dist/paruz-darwin-arm64.tar.gz.sha256)
-          SHA_X86=$(cut -d' ' -f1 dist/paruz-darwin-x86_64.tar.gz.sha256)
           SHA_LINUX=$(cut -d' ' -f1 dist/paruz-linux-x86_64.tar.gz.sha256)
           sed -e "s/@VERSION@/${VERSION}/g" \
               -e "s/@SHA_DARWIN_ARM64@/${SHA_ARM}/g" \
-              -e "s/@SHA_DARWIN_X86_64@/${SHA_X86}/g" \
               -e "s/@SHA_LINUX_X86_64@/${SHA_LINUX}/g" \
               Formula/paruz.rb.tmpl > dist/paruz.rb
           cat dist/paruz.rb
@@ -88,11 +125,11 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
+          # Creates the tag on this commit when the run came from a merge to main.
+          tag_name: v${{ needs.version.outputs.version }}
           files: |
             dist/paruz-linux-x86_64.tar.gz
             dist/paruz-linux-x86_64.tar.gz.sha256
-            dist/paruz-darwin-x86_64.tar.gz
-            dist/paruz-darwin-x86_64.tar.gz.sha256
             dist/paruz-darwin-arm64.tar.gz
             dist/paruz-darwin-arm64.tar.gz.sha256
             dist/paruz.rb

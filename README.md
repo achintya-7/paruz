@@ -23,7 +23,7 @@ On Arch it drives `paru`/`yay`; on macOS it drives Homebrew. The backend is dete
 
 ### macOS: Homebrew (required)
 
-paruz shells out to `brew` for search, info, install, and upgrade. Install it from [brew.sh](https://brew.sh) if you don't have it. Both Apple Silicon and Intel Macs are supported.
+paruz shells out to `brew` for search, info, install, and upgrade. Install it from [brew.sh](https://brew.sh) if you don't have it. Apple Silicon only — no Intel builds are published.
 
 ### Arch: AUR Helper (at least one required)
 
@@ -67,7 +67,7 @@ brew install achintya-7/tap/paruz
 paru -S paruz-bin
 ```
 
-### Install script (Linux + macOS)
+### Install script (Arch x86_64 + Apple Silicon)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/achintya-7/paruz/main/install.sh | bash
@@ -158,3 +158,9 @@ On first run paruz builds a local cache of package names. This makes search inst
 
 Details (version, description, dependencies, etc.) are fetched live when you select a package, with results cached in memory for the session.
 
+
+## Releases
+
+Releases are cut by CI, not by hand. Bump `version` in `package.json` and merge to `main` — the Release workflow sees a version with no matching tag, builds `linux-x86_64` and `darwin-arm64` on native runners, creates the `v<version>` tag, and publishes the archives, checksums, and a rendered `paruz.rb` formula. Merges that don't change the version are no-ops. Pushing a `v*` tag by hand still works and forces a release.
+
+Every PR runs lint, typecheck, and a build via the CI workflow.
