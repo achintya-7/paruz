@@ -5,7 +5,7 @@ import { PackageList } from "../components/PackageList.js";
 import { SearchBar } from "../components/SearchBar.js";
 import { StatusBar } from "../components/StatusBar.js";
 import { TitleBar } from "../components/TitleBar.js";
-import { refreshCache, usePackageSearch } from "../hooks/usePackageSearch.js";
+import { refreshCache, refreshInstalled, usePackageSearch } from "../hooks/usePackageSearch.js";
 import { maintenanceLabel } from "../lib/backend.js";
 import type { Config } from "../lib/config.js";
 import { installPackage } from "../lib/install.js";
@@ -54,6 +54,8 @@ export const SearchView = ({ config, onOpenSettings }: SearchViewProps) => {
             config.aur_helper,
             config.backend,
           );
+          // Re-read the installed set so the [i] marker appears without a new search.
+          await refreshInstalled();
           setStatus(result.message);
           setTimeout(() => setStatus(null), 3000);
         })();
@@ -72,11 +74,14 @@ export const SearchView = ({ config, onOpenSettings }: SearchViewProps) => {
         (async () => {
           setStatus(config.backend === "brew" ? "Updating packages..." : "Updating mirrors...");
           const result = await updateMirrors(renderer, config.mirror_helper, config.backend);
+          // An upgrade can change what is installed — keep the [i] markers honest.
+          await refreshInstalled();
           setStatus(result.message);
           setTimeout(() => setStatus(null), 3000);
         })();
         return;
-      case ",":
+      case "p":
+        if (!key.ctrl) return;
         onOpenSettings();
         return;
       case "escape":
@@ -125,7 +130,7 @@ export const SearchView = ({ config, onOpenSettings }: SearchViewProps) => {
 
       <StatusBar
         status={statusText}
-        hints={`[↑↓] Navigate  [Enter] Install  [Ctrl+U] ${maintenanceLabel(config.backend)}  [Ctrl+R] Refresh Cache  [,] Settings  [q] Quit`}
+        hints={`[↑↓] Navigate  [Enter] Install  [Ctrl+U] ${maintenanceLabel(config.backend)}  [Ctrl+R] Refresh Cache  [Ctrl+P] Settings  [Ctrl+C] Quit`}
       />
     </box>
   );

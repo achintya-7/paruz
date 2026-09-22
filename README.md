@@ -17,6 +17,7 @@ On Arch it drives `paru`/`yay`; on macOS it drives Homebrew. The backend is dete
 - Switchable themes: `ayu-dark`, `dracula`, `nord`, `catppuccin`, `gruvbox` + custom themes
 - In-app settings — change AUR helper, mirror helper, and theme without editing config files
 - Always-on search input — type to search, `↑↓` to navigate simultaneously
+- Installed packages are marked `[i]`, updated immediately after an install or upgrade
 
 ## Requirements
 
@@ -132,8 +133,10 @@ Then set `theme = "my-theme"` in `config.toml` or change it in the settings view
 | `Esc` | Clear search |
 | `Ctrl+R` | Force refresh local package cache |
 | `Ctrl+U` | Update mirrorlist (Arch) / `brew update && brew upgrade` (macOS) |
-| `,` | Open settings |
-| `q` | Quit |
+| `Ctrl+P` | Open settings |
+| `Ctrl+C` / `Ctrl+Q` | Quit |
+
+The search input is always focused, so every shortcut is chorded — plain letters always go into the search box.
 
 ### Settings view
 

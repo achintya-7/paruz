@@ -24,18 +24,10 @@ export const App = () => {
     load();
   }, [config?.theme]);
 
+  // The search input is always focused, so bare letters must reach it untouched —
+  // global shortcuts are chorded. Quitting is Ctrl+C (handled by the renderer) or Ctrl+Q.
   useKeyboard((key) => {
-    switch (key.name) {
-      case "q":
-        if (view === "search") process.exit(0);
-        break;
-      case ",":
-        if (view === "search") setView("settings");
-        break;
-      case "escape":
-        if (view === "settings") setView("search");
-        break;
-    }
+    if (key.ctrl && key.name === "q") process.exit(0);
   });
 
   if (loading || !config) {
